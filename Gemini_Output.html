@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#FBF9F5] text-stone-900 antialiased selection:bg-stone-900 selection:text-stone-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SŪTRA — Considered Objects & Living Artifacts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .img-zoom { transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    .product-card:hover .img-zoom { transform: scale(1.04); }
+  </style>
+</head>
+<body class="min-h-full flex flex-col bg-[#FBF9F5] text-stone-900">
+
+  <aside class="w-full bg-stone-900 text-[#FBF9F5] text-[11px] tracking-widest uppercase mono py-2 text-center px-4">
+    Pan-India complimentary dispatch on orders above ₹3,000 • GST Included
+  </aside>
+
+  <header class="sticky top-0 z-30 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#E7E5E0]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20 gap-4">
+        <a href="#" class="flex flex-col">
+          <span class="text-base sm:text-lg font-semibold tracking-tight uppercase">Sūtra / सूत्र</span>
+          <span class="text-[10px] mono tracking-widest uppercase text-stone-500">Living Craft Studio</span>
+        </a>
+
+        <div class="relative flex-1 max-w-xs hidden sm:block">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input id="search-input" type="text" placeholder="Search craft, material..." class="w-full bg-white border border-[#E7E5E0] rounded-full text-xs pl-8 pr-3 py-1.5 focus:outline-none focus:border-stone-900 transition-colors">
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="hidden md:inline text-[11px] mono text-stone-500">INR (₹)</span>
+          <button id="cart-toggle-btn" class="relative inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#E7E5E0] bg-white hover:border-stone-900 transition-colors text-xs font-medium cursor-pointer">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>Bag</span>
+            <span id="cart-badge" class="inline-flex items-center justify-center mono text-[10px] bg-stone-900 text-stone-50 h-4 min-w-[16px] px-1 rounded-full">0</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="py-2.5 flex items-center justify-between gap-3 border-t border-[#E7E5E0]/60 text-xs">
+        <nav id="filter-tabs" class="flex gap-1 overflow-x-auto no-scrollbar py-0.5">
+          <button data-cat="all" class="tab-btn px-3 py-1 rounded-full font-medium transition-colors bg-stone-900 text-white">All Craft</button>
+          <button data-cat="living" class="tab-btn px-3 py-1 rounded-full font-medium transition-colors text-stone-500 hover:text-stone-900">Living</button>
+          <button data-cat="workspace" class="tab-btn px-3 py-1 rounded-full font-medium transition-colors text-stone-500 hover:text-stone-900">Workspace</button>
+          <button data-cat="wear" class="tab-btn px-3 py-1 rounded-full font-medium transition-colors text-stone-500 hover:text-stone-900">Wear</button>
+        </nav>
+        <span id="item-count-label" class="mono text-[11px] text-stone-500 hidden sm:inline">8 Objects Available</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <div class="sm:hidden mb-4">
+      <input id="mobile-search-input" type="text" placeholder="Search craft, material..." class="w-full bg-white border border-[#E7E5E0] rounded-lg text-xs px-3 py-2 focus:outline-none focus:border-stone-900">
+    </div>
+
+    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+
+    <div id="empty-state" class="hidden text-center py-20">
+      <i data-lucide="package-search" class="w-8 h-8 text-stone-400 mx-auto mb-2"></i>
+      <p class="text-sm font-medium">No objects match your criteria</p>
+      <button id="reset-filter-btn" class="mt-2 text-xs mono underline text-stone-600 hover:text-black">Reset selection</button>
+    </div>
+  </main>
+
+  <div id="cart-backdrop" class="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <aside id="cart-drawer" class="fixed inset-y-0 right-0 max-w-md w-full bg-[#FBF9F5] border-l border-[#E7E5E0] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="px-6 py-4 border-b border-[#E7E5E0] flex items-center justify-between bg-white">
+      <div>
+        <h2 class="text-xs font-semibold uppercase tracking-wider">Your Bag</h2>
+        <p id="drawer-count-label" class="text-[11px] mono text-stone-500">0 items</p>
+      </div>
+      <button id="cart-close-btn" class="p-1.5 rounded-full hover:bg-stone-100 text-stone-500">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="px-6 py-2.5 bg-[#F6F4EE] border-b border-[#E7E5E0] text-[11px] mono">
+      <div class="flex justify-between mb-1">
+        <span id="shipping-prompt" class="text-stone-600">Add ₹3,000 for complimentary dispatch</span>
+        <span id="shipping-percent" class="font-medium">0%</span>
+      </div>
+      <div class="w-full bg-[#E7E5E0] h-1 rounded-full overflow-hidden">
+        <div id="shipping-bar" class="bg-stone-900 h-full w-0 transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <div id="cart-items" class="flex-1 overflow-y-auto px-6 divide-y divide-[#E7E5E0]"></div>
+
+    <div id="cart-empty" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
+      <i data-lucide="shopping-bag" class="w-8 h-8 text-stone-300 mb-2"></i>
+      <p class="text-xs font-medium text-stone-800">Your bag is empty</p>
+      <p class="text-[11px] text-stone-500 mt-1">Discover handcrafted objects rooted in Indian heritage.</p>
+    </div>
+
+    <div id="cart-footer" class="p-6 bg-white border-t border-[#E7E5E0] space-y-3">
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between text-stone-500">
+          <span>Subtotal</span>
+          <span id="cart-subtotal" class="mono text-stone-900">₹0</span>
+        </div>
+        <div class="flex justify-between text-stone-500">
+          <span>Shipping (Pan-India)</span>
+          <span id="cart-shipping" class="mono text-stone-900">₹0</span>
+        </div>
+        <div class="pt-2 border-t border-[#E7E5E0] flex justify-between text-sm font-medium">
+          <span>Grand Total</span>
+          <span id="cart-total" class="mono font-semibold">₹0</span>
+        </div>
+      </div>
+      <button id="checkout-btn" class="w-full py-3 bg-stone-900 hover:bg-black text-[#FBF9F5] rounded-lg text-xs mono uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+        <span>Proceed with UPI / Net Banking</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </button>
+      <p class="text-[10px] text-center text-stone-500 mono">GPay • PhonePe • Paytm • Cards • Net Banking</p>
+    </div>
+  </aside>
+
+  <div id="order-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-stone-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity">
+    <div class="bg-[#FBF9F5] border border-[#E7E5E0] rounded-xl max-w-sm w-full p-6 text-center shadow-xl">
+      <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 mx-auto flex items-center justify-center mb-3">
+        <i data-lucide="check" class="w-5 h-5"></i>
+      </div>
+      <h3 class="text-sm font-semibold uppercase">Order Received</h3>
+      <p class="text-xs text-stone-500 mt-1">UPI reference generated for <span id="modal-order-id" class="mono font-medium text-stone-900">#STR-0000</span></p>
+      <div class="my-4 p-3 bg-white border border-[#E7E5E0] rounded-lg text-left text-xs mono space-y-1">
+        <div class="flex justify-between text-stone-500"><span>Paid Amount:</span><span id="modal-amount" class="text-stone-900 font-medium">₹0</span></div>
+        <div class="flex justify-between text-stone-500"><span>Payment Method:</span><span class="text-stone-900">Instant UPI</span></div>
+        <div class="flex justify-between text-stone-500"><span>Fulfillment:</span><span class="text-stone-900">Delhivery Express</span></div>
+      </div>
+      <button id="modal-close-btn" class="w-full py-2 bg-stone-900 text-[#FBF9F5] rounded-md text-xs mono uppercase">Continue Browsing</button>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 bg-stone-900 text-[#FBF9F5] px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2.5 text-xs border border-stone-800">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-text">Item added to bag</span>
+  </div>
+
+  <footer class="mt-auto border-t border-[#E7E5E0] bg-white py-8 text-xs text-stone-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 mono text-[11px]">
+      <p>© 2026 SŪTRA OBJECTS LLP • JAIPUR • BENGALURU • NEW DELHI</p>
+      <div class="flex gap-4">
+        <span>Handcrafted in India</span>
+        <span>Standard Indian GST Included</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const CATALOG = [
+      { id: 'st-01', name: 'Kansa Bell Metal Tumbler', cat: 'living', price: 1450, tag: 'Traditional 78:22 copper-tin bell bronze for alkaline hydration.', img: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=600&auto=format&fit=crop', badge: 'Hand-Cast' },
+      { id: 'st-02', name: 'Turned Beech Table Lamp', cat: 'workspace', price: 3850, tag: 'Channapatna natural lacquer lathe craft with linen cord.', img: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=600&auto=format&fit=crop', badge: 'Artisanal' },
+      { id: 'st-03', name: 'Hand-Spun Khadi Throw', cat: 'living', price: 2600, tag: 'Unbleached natural indigo waffle weave from Wardha cotton.', img: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop' },
+      { id: 'st-04', name: 'Hammered Brass Filter Coffee Set', cat: 'living', price: 1850, tag: 'Traditional Kumbakonam brass slow drip vessel with davarah.', img: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=600&auto=format&fit=crop', badge: 'South Indian' },
+      { id: 'st-05', name: 'Sheesham & Brass Valet', cat: 'workspace', price: 2200, tag: 'Reclaimed Indian rosewood desk tray with raw brass insert.', img: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=600&auto=format&fit=crop' },
+      { id: 'st-06', name: 'Longpi Black Clay Carafe', cat: 'living', price: 2900, tag: 'Manipuri serpentine stone and bamboo weave water vessel.', img: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?q=80&w=600&auto=format&fit=crop', badge: 'GI Tagged' },
+      { id: 'st-07', name: 'Milled Vegetable-Tanned Pouch', cat: 'wear', price: 1950, tag: 'Full-grain pull-up leather crafted by Kolhapur guild tanners.', img: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=600&auto=format&fit=crop' },
+      { id: 'st-08', name: 'Sand-Cast Terracotta Diffuser', cat: 'living', price: 1250, tag: 'Unglazed high-fire red clay for natural essential oils.', img: 'https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=600&auto=format&fit=crop' }
+    ];
+
+    // State Variables
+    let cart = [];
+    let activeCategory = 'all';
+    let filterQuery = '';
+    const FREE_SHIPPING_LIMIT = 3000;
+    const FLAT_SHIPPING = 199;
+
+    // Currency Formatter
+    const formatINR = (amt) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt);
+
+    function renderGrid() {
+      const grid = document.getElementById('product-grid');
+      const empty = document.getElementById('empty-state');
+      const filtered = CATALOG.filter(item => {
+        const matchesCat = activeCategory === 'all' || item.cat === activeCategory;
+        const matchesQuery = item.name.toLowerCase().includes(filterQuery) || item.tag.toLowerCase().includes(filterQuery);
+        return matchesCat && matchesQuery;
+      });
+
+      document.getElementById('item-count-label').textContent = `${filtered.length} Object${filtered.length === 1 ? '' : 's'} Available`;
+
+      if (!filtered.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.innerHTML = filtered.map(item => `
+        <article class="product-card group flex flex-col bg-white border border-[#E7E5E0] rounded-xl overflow-hidden hover:border-stone-900 transition-colors">
+          <div class="relative aspect-square bg-[#F6F4EE] overflow-hidden">
+            <img src="${item.img}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover img-zoom" onerror="this.src='https://placehold.co/600x600/F6F4EE/78716C?text=${encodeURIComponent(item.name)}'">
+            ${item.badge ? `<span class="absolute top-3 left-3 bg-[#FBF9F5]/90 border border-[#E7E5E0] text-[10px] mono uppercase px-2 py-0.5 rounded-full">${item.badge}</span>` : ''}
+          </div>
+          <div class="p-4 flex flex-col flex-1 justify-between gap-3">
+            <div>
+              <div class="flex justify-between items-baseline gap-2">
+                <h3 class="text-xs font-semibold text-stone-900">${item.name}</h3>
+                <span class="mono text-xs font-medium text-stone-900">${formatINR(item.price)}</span>
+              </div>
+              <p class="text-[11px] text-stone-500 mt-1 leading-snug">${item.tag}</p>
+            </div>
+            <div class="pt-2.5 border-t border-[#E7E5E0]/70 flex items-center justify-between">
+              <span class="text-[10px] mono uppercase text-stone-400">${item.cat}</span>
+              <button data-action="add" data-id="${item.id}" class="inline-flex items-center gap-1 px-3 py-1 bg-[#FBF9F5] hover:bg-stone-900 hover:text-white border border-[#E7E5E0] rounded text-xs mono transition-colors">
+                <i data-lucide="plus" class="w-3 h-3"></i> Add
+              </button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function updateCart() {
+      const totalCount = cart.reduce((acc, i) => acc + i.qty, 0);
+      document.getElementById('cart-badge').textContent = totalCount;
+      document.getElementById('drawer-count-label').textContent = `${totalCount} item${totalCount === 1 ? '' : 's'}`;
+
+      const itemsEl = document.getElementById('cart-items');
+      const emptyEl = document.getElementById('cart-empty');
+      const footerEl = document.getElementById('cart-footer');
+      const shippingBar = document.getElementById('shipping-bar');
+      const shippingPrompt = document.getElementById('shipping-prompt');
+      const shippingPercent = document.getElementById('shipping-percent');
+
+      if (!cart.length) {
+        itemsEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        footerEl.classList.add('hidden');
+        shippingBar.style.width = '0%';
+        shippingPercent.textContent = '0%';
+        shippingPrompt.textContent = `Add ${formatINR(FREE_SHIPPING_LIMIT)} for free dispatch`;
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      footerEl.classList.remove('hidden');
+
+      const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+      const isFree = subtotal >= FREE_SHIPPING_LIMIT;
+      const shipping = isFree ? 0 : FLAT_SHIPPING;
+      const progress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_LIMIT) * 100));
+
+      shippingBar.style.width = `${progress}%`;
+      shippingPercent.textContent = `${progress}%`;
+      shippingPrompt.innerHTML = isFree 
+        ? '<span class="text-emerald-700">✓ Pan-India Free Shipping Qualified</span>' 
+        : `Add ${formatINR(FREE_SHIPPING_LIMIT - subtotal)} for free shipping`;
+
+      document.getElementById('cart-subtotal').textContent = formatINR(subtotal);
+      document.getElementById('cart-shipping').textContent = isFree ? 'Free' : formatINR(shipping);
+      document.getElementById('cart-total').textContent = formatINR(subtotal + shipping);
+
+      itemsEl.innerHTML = cart.map(item => `
+        <div class="py-3 flex gap-3 items-center">
+          <img src="${item.img}" alt="${item.name}" class="w-14 h-14 rounded-lg object-cover bg-stone-100 border border-[#E7E5E0] shrink-0">
+          <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-semibold truncate">${item.name}</h4>
+            <span class="mono text-xs text-stone-500">${formatINR(item.price)}</span>
+            <div class="flex items-center gap-2 mt-1.5">
+              <div class="inline-flex border border-[#E7E5E0] rounded bg-white">
+                <button data-action="qty" data-id="${item.id}" data-delta="-1" class="px-2 py-0.5 text-xs text-stone-500 hover:text-black">-</button>
+                <span class="px-2 text-xs mono">${item.qty}</span>
+                <button data-action="qty" data-id="${item.id}" data-delta="1" class="px-2 py-0.5 text-xs text-stone-500 hover:text-black">+</button>
+              </div>
+              <button data-action="remove" data-id="${item.id}" class="text-[10px] mono text-stone-400 hover:text-rose-600">Remove</button>
+            </div>
+          </div>
+          <span class="mono text-xs font-medium text-stone-900">${formatINR(item.price * item.qty)}</span>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    const drawer = document.getElementById('cart-drawer');
+    const backdrop = document.getElementById('cart-backdrop');
+    const toggleDrawer = (open) => {
+      drawer.classList.toggle('translate-x-full', !open);
+      backdrop.classList.toggle('opacity-0', !open);
+      backdrop.classList.toggle('pointer-events-none', !open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    let toastTimer;
+    const showToast = (text) => {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = text;
+      toast.classList.remove('opacity-0', 'translate-y-12', 'pointer-events-none');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none'), 2200);
+    };
+
+    // Event Delegation: Catalog and Cart Actions
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const { action, id, delta } = btn.dataset;
+
+      if (action === 'add') {
+        const item = CATALOG.find(p => p.id === id);
+        const existing = cart.find(i => i.id === id);
+        if (existing) existing.qty += 1;
+        else cart.push({ ...item, qty: 1 });
+        updateCart();
+        showToast(`${item.name} added`);
+      } else if (action === 'qty') {
+        const item = cart.find(i => i.id === id);
+        if (!item) return;
+        item.qty += parseInt(delta, 10);
+        if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+        updateCart();
+      } else if (action === 'remove') {
+        cart = cart.filter(i => i.id !== id);
+        updateCart();
+      }
+    });
+
+    document.getElementById('cart-toggle-btn').addEventListener('click', () => toggleDrawer(true));
+    document.getElementById('cart-close-btn').addEventListener('click', () => toggleDrawer(false));
+    backdrop.addEventListener('click', () => toggleDrawer(false));
+
+    // Category Tabs Delegation
+    document.getElementById('filter-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.tab-btn');
+      if (!tab) return;
+      document.querySelectorAll('.tab-btn').forEach(t => {
+        t.className = 'tab-btn px-3 py-1 rounded-full font-medium transition-colors text-stone-500 hover:text-stone-900';
+      });
+      tab.className = 'tab-btn px-3 py-1 rounded-full font-medium transition-colors bg-stone-900 text-white';
+      activeCategory = tab.dataset.cat;
+      renderGrid();
+    });
+
+    // Consolidated Search Filter
+    const handleSearch = (e) => {
+      filterQuery = e.target.value.toLowerCase().trim();
+      renderGrid();
+    };
+    document.getElementById('search-input').addEventListener('input', handleSearch);
+    document.getElementById('mobile-search-input').addEventListener('input', handleSearch);
+
+    // Reset Filter Button
+    document.getElementById('reset-filter-btn').addEventListener('click', () => {
+      filterQuery = '';
+      activeCategory = 'all';
+      document.getElementById('search-input').value = '';
+      document.getElementById('mobile-search-input').value = '';
+      document.querySelector('[data-cat="all"]').click();
+    });
+
+    // Checkout Flow Simulation
+    const orderModal = document.getElementById('order-modal');
+    document.getElementById('checkout-btn').addEventListener('click', () => {
+      if (!cart.length) return;
+      const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+      const total = subtotal + (subtotal >= FREE_SHIPPING_LIMIT ? 0 : FLAT_SHIPPING);
+      
+      document.getElementById('modal-order-id').textContent = '#STR-' + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('modal-amount').textContent = formatINR(total);
+      
+      toggleDrawer(false);
+      orderModal.classList.remove('opacity-0', 'pointer-events-none');
+      cart = [];
+      updateCart();
+    });
+
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+      orderModal.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    // Keyboard support
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleDrawer(false);
+        orderModal.classList.add('opacity-0', 'pointer-events-none');
+      }
+    });
+
+    // Initial Render
+    renderGrid();
+    updateCart();
+  </script>
+</body>
+</html>
